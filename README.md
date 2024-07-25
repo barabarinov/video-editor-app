@@ -31,7 +31,8 @@ brew install ffmpeg
 > *~/path/to/virtualenv/lib/python3.11/site-packages/riffusion/spectrogram_converter.py*
 >
 > 
-> I didn’t have enough time to resolve it, so I suggest just commenting out the arguments passed to the InverseMelScale class, such as:
+> I didn’t have enough time to resolve it, so I suggest just commenting out the arguments passed to the InverseMelScale class ([Documentation link](https://pytorch.org/audio/stable/generated/torchaudio.transforms.InverseMelScale.html)), such as:
+> 
 > 
 > ```python
 > self.inverse_mel_scaler = torchaudio.transforms.InverseMelScale(
