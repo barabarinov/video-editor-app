@@ -94,8 +94,9 @@ def process_video() -> None:
             ]
 
             audio_dir = "generated_audio"
-            audio_path = os.path.join(audio_dir, "generated_audio.mp3")
+            audio_path = os.path.join(audio_dir, f"generated_audio.{extension}")
             recreate_directory(audio_dir)
+
             if prompt:
                 with st.spinner("Processing..."):
                     generate_audio(
