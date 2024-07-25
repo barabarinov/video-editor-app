@@ -1,6 +1,5 @@
 import torch
 
-import torchaudio
 from riffusion.spectrogram_params import SpectrogramParams
 from riffusion.streamlit import util as streamlit_util
 
@@ -40,7 +39,7 @@ def generate_audio(
     )
     print(f"✅ Finished running audio_segment_from_spectrogram_image")
 
-    torchaudio.save(output_path, segment, 44100)
+    segment.export(output_path, format=extension)
 
     streamlit_util.display_and_download_audio(
         segment, name=f"{prompt.replace(' ', '_')}_{seed}", extension=extension
