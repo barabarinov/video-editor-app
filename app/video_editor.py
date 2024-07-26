@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 import typing as T
@@ -11,6 +12,8 @@ from app.audio import generate_audio
 
 AUDIO_OPTIONS_TITLE = "Audio generation options"
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
 
 def recreate_directory(dir_path: str) -> None:
     if os.path.exists(dir_path):
@@ -21,6 +24,7 @@ def recreate_directory(dir_path: str) -> None:
 
 def process_video() -> None:
     st.title("Video Manipulation App")
+    logging.info("Video Manipulation App started")
 
     video_file = st.file_uploader("Upload a video file", type=["mp4", "mov", "avi"])
 
@@ -28,6 +32,7 @@ def process_video() -> None:
         video_path = os.path.join("uploads", video_file.name)
         with open(video_path, "wb") as f:
             f.write(video_file.getbuffer())
+        logging.info(f"✅ Uploaded video file saved to {video_path}")
         st.video(video_path)
 
         num_clips = st.number_input(
@@ -117,6 +122,7 @@ def process_video() -> None:
             clips[selected_clip - 1] = clips[selected_clip - 1].set_audio(
                 mp.AudioFileClip(audio_path)
             )
+            logging.info(f"✅ Added generated audio to clip {selected_clip}")
 
             output_dir = "output_clips"
             recreate_directory(output_dir)
@@ -127,6 +133,7 @@ def process_video() -> None:
                 )
 
             shutil.make_archive("clips", "zip", output_dir)
+            logging.info("✅ Created zip archive of clips")
             st.success("Processing complete!")
 
             with open("clips.zip", "rb") as f:
