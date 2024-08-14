@@ -146,7 +146,7 @@ def process_and_download_clips(
     output_dir = Path("output_clips")
     recreate_directory(output_dir)
 
-    filename = get_video_file_name(video.filename)
+    filename = Path(video.filename).stem
     for i, clip in enumerate(clips):
         clip.write_videofile(
             (output_dir / f"{filename}_clip_{i + 1}.mp4").as_posix(), audio_codec="aac"
@@ -170,10 +170,6 @@ def process_and_download_clips(
     for i, clip in enumerate(clip_files):
         with cols[i % num_columns]:
             st.video(clip.as_posix())
-
-
-def get_video_file_name(filepath: str) -> str:
-    return filepath.split("/")[1].split(".")[0]
 
 
 def calculate_width(clip_duration: float) -> int:
