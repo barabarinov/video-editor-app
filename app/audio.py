@@ -60,4 +60,8 @@ def generate_audio(
     logging.info("✅ Finished running audio_segment_from_spectrogram_image")
 
     segment.export(output_path, format=extension)
+
+    streamlit_util.display_and_download_audio(
+        segment, name=f"{prompt.replace(' ', '_')}_{seed}", extension=extension
+    )
     logging.info(f"✅ Audio segment exported successfully to {output_path}")
