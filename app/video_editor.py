@@ -11,6 +11,25 @@ from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 from app.audio import generate_audio
 
+MIN_NUM_CLIPS = 1
+MAX_NUM_CLIPS = 10
+DEFAULT_NUM_CLIPS = 1
+
+MIN_COLUMNS = 1
+MAX_COLUMNS = 5
+DEFAULT_NUM_COLUMNS = 3
+
+DEFAULT_SEED = 42
+DEFAULT_INFERENCE_STEPS = 30
+DEFAULT_GUIDANCE = 7.0
+
+SCHEDULER_INDEX = 0
+
+UPLOAD_DIR = Path("uploads")
+AUDIO_DIR = Path("generated_audio")
+OUTPUT_DIR = Path("output_clips")
+ZIP_FILENAME = "clips.zip"
+
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
@@ -31,7 +50,7 @@ def process_video() -> None:
         checkpoint = streamlit_util.select_checkpoint(st.sidebar)
 
         num_clips = st.number_input(
-            "Number of clips to split into", min_value=1, max_value=10, value=1
+            "Number of clips to split into", min_value=MIN_NUM_CLIPS, max_value=MAX_NUM_CLIPS, value=DEFAULT_NUM_CLIPS
         )
         prompt = st.text_input("Enter a prompt for audio generation")
 
@@ -39,7 +58,10 @@ def process_video() -> None:
             "Select clip to add generated audio", range(1, num_clips + 1)
         )
         num_columns = st.number_input(
-            "Number of columns for displaying clips", min_value=1, max_value=5, value=3
+            "Number of columns for displaying clips",
+            min_value=MIN_COLUMNS,
+            max_value=MAX_COLUMNS,
+            value=DEFAULT_NUM_COLUMNS,
         )
         audio_params = get_audio_params(device, extension, checkpoint)
 
@@ -55,9 +77,8 @@ def process_video() -> None:
 
 
 def save_uploaded_file(uploaded_file: UploadedFile) -> str:
-    upload_dir = Path("uploads")
-    recreate_directory(upload_dir)
-    video_path = upload_dir / uploaded_file.name
+    recreate_directory(UPLOAD_DIR)
+    video_path = UPLOAD_DIR / uploaded_file.name
 
     with open(video_path, "wb") as f:
         f.write(uploaded_file.getbuffer())
@@ -73,20 +94,20 @@ def get_audio_params(device: str, extension: str, checkpoint: str) -> dict:
             int,
             st.number_input(
                 "Seed",
-                value=42,
+                value=DEFAULT_SEED,
                 help="Change this to generate different variations",
             ),
         )
-        num_inference_steps = T.cast(int, st.number_input("Inference steps", value=30))
+        num_inference_steps = T.cast(int, st.number_input("Inference steps", value=DEFAULT_INFERENCE_STEPS))
         guidance = st.number_input(
             "Guidance",
-            value=7.0,
+            value=DEFAULT_GUIDANCE,
             help="How much the model listens to the text prompt",
         )
         scheduler = st.selectbox(
             "Scheduler",
             options=streamlit_util.SCHEDULER_OPTIONS,
-            index=0,
+            index=SCHEDULER_INDEX,
             help="Which diffusion scheduler to use",
         )
         assert scheduler is not None
@@ -127,9 +148,8 @@ def process_and_download_clips(
         for i in range(num_clips)
     ]
 
-    audio_dir = Path("generated_audio")
-    recreate_directory(audio_dir)
-    audio_path = audio_dir / f"generated_audio.{audio_params['extension']}"
+    recreate_directory(AUDIO_DIR)
+    audio_path = AUDIO_DIR / f"generated_audio.{audio_params['extension']}"
 
     if prompt:
         generate_audio(
@@ -143,28 +163,27 @@ def process_and_download_clips(
     )
     logging.info(f"✅ Added generated audio to clip {selected_clip}")
 
-    output_dir = Path("output_clips")
-    recreate_directory(output_dir)
+    recreate_directory(OUTPUT_DIR)
 
     filename = Path(video.filename).stem
     for i, clip in enumerate(clips):
         clip.write_videofile(
-            (output_dir / f"{filename}_clip_{i + 1}.mp4").as_posix(), audio_codec="aac"
+            (OUTPUT_DIR / f"{filename}_clip_{i + 1}.mp4").as_posix(), audio_codec="aac"
         )
 
-    shutil.make_archive(base_name="clips", format="zip", root_dir=output_dir)
+    shutil.make_archive(base_name="clips", format="zip", root_dir=OUTPUT_DIR)
     logging.info("✅ Created zip archive of clips")
     st.success("Processing complete!")
 
-    with open("clips.zip", "rb") as f:
+    with open(ZIP_FILENAME, "rb") as f:
         st.download_button(
             label="Download Clips",
             data=f,
-            file_name="clips.zip",
+            file_name=ZIP_FILENAME,
             mime="application/zip",
         )
 
-    clip_files = sorted(output_dir.iterdir(), key=lambda p: p.name)
+    clip_files = sorted(OUTPUT_DIR.iterdir(), key=lambda p: p.name)
     cols = st.columns(num_columns)
 
     for i, clip in enumerate(clip_files):
