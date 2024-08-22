@@ -4,6 +4,8 @@ import torch
 from riffusion.spectrogram_params import SpectrogramParams
 from riffusion.streamlit import util as streamlit_util
 
+IMAGE_HEIGHT = 512
+
 logging.basicConfig(
     level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s'
 )
@@ -45,7 +47,7 @@ def generate_audio(
             negative_prompt=negative_prompt,
             seed=seed,
             width=width,
-            height=512,
+            height=IMAGE_HEIGHT,
             checkpoint=checkpoint,
             device=device,
             scheduler=scheduler,
